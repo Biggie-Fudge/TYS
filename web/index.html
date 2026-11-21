@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Yacht Standard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Layout idea: a navy demo bar on top, then one device frame (iPad, phone or console) on a cool paper ground. */
+  /* Theme follows designsbysarafl.com: Archivo Narrow, near-black ink on white, square corners, deep ocean teal from its hero. */
+  --ink:#151515; --accent:#0f6b7d; --paper:#f3f3f3; --card:#ffffff; --line:#e2e2e2; --muted:#5f5f5f;
+  --ok:#1f7a4d; --warn:#9a5b00; --bad:#c9252f; --okbg:#e4f3ea; --warnbg:#fbefd9; --badbg:#fde8e9;
+  --display:'Archivo Narrow','Arial Narrow',Arial,sans-serif;
+  --body:'Archivo Narrow','Arial Narrow',Arial,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.45;display:flex;flex-direction:column}
+h1,h2,h3{font-family:var(--display);font-weight:600;margin:0;text-wrap:balance}
+h2{text-transform:uppercase;letter-spacing:.03em}
+h2{font-size:1.45rem} h3{font-size:1.05rem}
+p{margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.bar{background:var(--ink);color:#fff;display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;padding:10px 16px}
+.brand{font-family:var(--display);letter-spacing:.06em;font-size:1rem;margin-right:auto}
+.brand small{display:block;font-family:var(--body);letter-spacing:0;color:#9fd3dc;font-size:.72rem}
+.seg{display:flex;border:1px solid #3d3d3d;border-radius:10px;overflow:hidden}
+.seg button{background:transparent;color:#d6dde5;border:0;padding:9px 14px;font-weight:600}
+.seg button[aria-pressed=true]{background:var(--accent);color:#fff}
+.bar .ghost{background:transparent;border:1px solid #3d3d3d;color:#fff;border-radius:10px;padding:9px 12px;font-weight:600}
+.bar .sig.off{background:var(--bad);border-color:var(--bad)}
+main{flex:1;overflow:auto;padding:18px 16px 40px}
+.device{margin:0 auto;background:var(--card);border:10px solid #151515;box-shadow:0 12px 30px rgba(21,21,21,.18)}
+.ipad{max-width:1080px;border-radius:28px;display:grid;grid-template-columns:190px 1fr;min-height:640px;overflow:hidden}
+.ipad aside{background:var(--ink);color:#fff;padding:18px 12px;display:flex;flex-direction:column;gap:6px}
+.ipad aside .vn{font-family:var(--display);font-size:1.1rem;padding:0 8px 2px}
+.ipad aside .vs{color:#9fd3dc;font-size:.8rem;padding:0 8px 12px}
+.nav{background:transparent;border:0;color:#d6dde5;text-align:left;padding:14px 12px;border-radius:10px;font-weight:600;font-size:1.02rem}
+.nav[aria-current=true]{background:#2c2c2c;color:#fff;box-shadow:inset 3px 0 0 var(--accent)}
+.pane{padding:18px 20px 28px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.strip{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+.phone{max-width:410px;border-radius:38px;min-height:700px;overflow:hidden;display:flex;flex-direction:column}
+.phone .ph{background:var(--ink);color:#fff;padding:16px 16px 12px}
+.phone .ph h2{font-size:1.15rem}
+.phone .tabs{display:flex;border-bottom:1px solid var(--line);overflow-x:auto}
+.phone .tabs button{flex:1;background:none;border:0;padding:12px 10px;font-weight:600;color:var(--muted);border-bottom:3px solid transparent;white-space:nowrap}
+.phone .tabs button[aria-current=true]{color:var(--ink);border-color:var(--accent)}
+.phone .pane{padding:14px}
+.console{max-width:1100px;margin:0 auto;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.console .ch{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;gap:8px 16px;align-items:baseline;justify-content:space-between}
+.console .tabs{display:flex;flex-wrap:wrap;gap:4px;padding:8px 14px;border-bottom:1px solid var(--line);background:#f7f7f7}
+.console .tabs button{background:none;border:0;padding:9px 12px;border-radius:8px;font-weight:600;color:var(--muted)}
+.console .tabs button[aria-current=true]{background:var(--ink);color:#fff}
+.split{display:grid;grid-template-columns:260px 1fr;gap:18px}
+.list{display:flex;flex-direction:column;gap:8px}
+.row{display:flex;gap:12px;align-items:center;justify-content:space-between;border:1px solid var(--line);border-radius:12px;padding:14px 16px;background:#fff;min-height:64px;width:100%;text-align:left}
+button.row:hover{border-color:var(--ink)}
+.row .t{font-weight:600}
+.row .s{color:var(--muted);font-size:.88rem}
+.row.sel{border-color:var(--ink);box-shadow:inset 3px 0 0 var(--accent)}
+.pill{display:inline-block;padding:3px 10px;font-size:.8rem;font-weight:600;white-space:nowrap;text-transform:uppercase;letter-spacing:.03em;background:#ececec;color:var(--ink)}
+.pill.ok{background:var(--okbg);color:var(--ok)} .pill.warn{background:var(--warnbg);color:var(--warn)} .pill.bad{background:var(--badbg);color:var(--bad)}
+.sec{font-size:.78rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:4px}
+.btn{background:var(--ink);color:#fff;border:0;padding:12px 18px;font-weight:600;min-height:48px;text-transform:uppercase;letter-spacing:.03em;font-size:.92rem}
+.btn.alt{background:#fff;color:var(--ink);border:1.5px solid var(--ink)}
+.btn.brass{background:var(--accent);color:#fff}
+.btn.sm{padding:8px 12px;min-height:38px;font-size:.9rem}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.item{border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.item.flag{border-color:var(--bad);background:#fffafa}
+.item .q{font-weight:600;font-size:1.05rem}
+.choice{display:flex;gap:8px;flex-wrap:wrap}
+.choice button{flex:1;min-width:90px;min-height:54px;border-radius:10px;border:1.5px solid var(--line);background:#fff;font-weight:700;font-size:1rem}
+.choice button[aria-pressed=true].p{background:var(--ok);border-color:var(--ok);color:#fff}
+.choice button[aria-pressed=true].f{background:var(--bad);border-color:var(--bad);color:#fff}
+.choice button[aria-pressed=true].n{background:var(--muted);border-color:var(--muted);color:#fff}
+input[type=text],input[type=number],input[type=date],input[type=password],select,textarea{border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;background:#fff;min-height:46px;width:100%}
+textarea{min-height:76px;resize:vertical}
+label{font-size:.85rem;font-weight:600;color:var(--muted);display:flex;flex-direction:column;gap:4px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.tile{border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.tile b{display:block;font-family:var(--display);font-size:1.6rem;font-variant-numeric:tabular-nums}
+.tile span{color:var(--muted);font-size:.85rem}
+.note{border-radius:12px;padding:12px 14px;background:var(--warnbg);color:#5c3a00;font-size:.92rem;display:flex;gap:10px;justify-content:space-between;align-items:center;flex-wrap:wrap}
+.note.info{background:#e3f1f4;color:var(--ink)}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:.76rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+td.num{font-variant-numeric:tabular-nums}
+.photo{max-width:220px;border-radius:10px;border:1px solid var(--line);display:block}
+.muted{color:var(--muted)} .sm{font-size:.88rem}
+.modal{position:fixed;inset:0;background:rgba(21,21,21,.6);display:flex;align-items:flex-start;justify-content:center;padding:24px 14px;overflow:auto;z-index:10}
+.sheet{background:#fff;border-radius:16px;max-width:620px;width:100%;padding:20px;display:flex;flex-direction:column;gap:14px}
+.sheet.wide{max-width:860px}
+.sheet .x{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.report{border-top:4px solid var(--accent);padding-top:14px;display:flex;flex-direction:column;gap:14px}
+.report .rt{font-family:var(--display);letter-spacing:.08em}
+#toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 18px;border-radius:12px;font-weight:600;max-width:90vw;z-index:20;display:none}
+@media (max-width:760px){
+  .ipad{grid-template-columns:1fr;border-width:6px;border-radius:18px}
+  .ipad aside{flex-direction:row;flex-wrap:wrap;padding:10px}
+  .ipad aside .vn,.ipad aside .vs{width:100%;padding-bottom:0}
+  .nav{padding:10px 12px;font-size:.95rem}
+  .split{grid-template-columns:1fr}
+  .phone{border-width:6px;border-radius:24px}
+}
+*:not(.device){border-radius:0!important}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="bar" id="bar"></header>
+<main id="app"></main>
+<div id="modal"></div>
+<div id="toast" role="status" aria-live="polite"></div>
+<script>
+const D=864e5;
+const LS={get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){return false}}};
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid=()=>crypto.randomUUID?crypto.randomUUID():'id-'+Date.now().toString(36)+Math.random().toString(36).slice(2,10);
+const fd=t=>new Date(t).toLocaleDateString(undefined,{month:'short',day:'numeric'});
+const ft=t=>new Date(t).toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
+const sod=()=>{const d=new Date();d.setHours(0,0,0,0);return d.getTime()};
+const clone=o=>JSON.parse(JSON.stringify(o));
+const I=(text,type='check',unit='',min=null,max=null)=>({id:uid(),text,type,unit,min,max});
+const SAMPLE='data:image/svg+xml;utf8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="320" height="200"><rect width="320" height="200" fill="#7d8a97"/><circle cx="160" cy="92" r="44" fill="none" stroke="#fff" stroke-width="6"/><text x="160" y="182" font-family="sans-serif" font-size="14" fill="#fff" text-anchor="middle">Sample photo</text></svg>');
+let S, PH={}, ui={surface:'ipad',ipad:'today',phoneRole:'owner',phone:'status',con:'checklists',run:null,modal:null,sel:null,simOff:false,netDown:false,needCode:false,saving:0};
+let VID=LS.get('tys-vessel')||'', VESSELS=[], OUT=LS.get('tys-outbox')||[], code=LS.get('tys-code')||'', busy=false, again=false;
+
+const LIB=[
+ {name:'Main engines',items:[['Oil level within marks, both engines'],['Oil pressure at idle','reading','psi',40,70],['Coolant level, both engines'],['Belts and hoses, no cracks or chafe']]},
+ {name:'Generator',items:[['Generator oil level'],['Raw water strainer clear'],['Voltage under load','reading','V',115,125],['Exhaust elbow, no leaks']]},
+ {name:'Watermaker',items:[['Pre-filter pressure','reading','psi',10,25],['Product water salinity','reading','ppm',0,500],['Membrane flush completed']]},
+ {name:'Tender',items:[['Tender secured, drain plug in'],['Tender fuel above half'],['Kill switch lanyard aboard'],['Tender hull and tubes','photo']]},
+ {name:'Shore power',items:[['Cord and inlet cool to the touch'],['Shore voltage','reading','V',200,250],['Galvanic isolator status light green']]},
+ {name:'Gyro stabilizer',items:[['Cooling pump running'],['Bearing temperature','reading','°F',60,180],['No alarms on the display']]}
+];
+
+/* ---------- data: local cache, outbox, sync ---------- */
+const emptyS=()=>({vessel:{id:'',name:'',type:'',year:'',port:'',owner:''},version:0,published:null,checklists:[],draft:[],users:[],equipment:[],due:[],runs:[],issues:[],logs:[],trips:[],requests:[],activity:[],trip:null,seenV:0,seenVersion:true,lastSync:null});
+const canTry=()=>!ui.simOff&&navigator.onLine!==false;
+const online=()=>canTry()&&!ui.netDown;
+function save(){
+  if(VID)LS.set('tys-cache-'+VID,S);
+  if(!LS.set('tys-outbox',OUT)&&OUT.length&&!save.warned){save.warned=true;toast('This device is low on storage. Keep this page open until signal returns.')}
+}
+function applyState(st){
+  const same=S&&S.vessel&&S.vessel.id===st.vessel.id;
+  if(same&&ui.saving>0)st.draft=S.draft;
+  st.trip=same?S.trip||null:null;st.seenV=same&&S.seenV!=null?S.seenV:st.version;st.seenVersion=st.seenV>=st.version;st.lastSync=Date.now();
+  S=st;
+}
+async function api(method,path,body){
+  const r=await fetch('/api'+path,{method,headers:{'content-type':'application/json','x-tys-code':code},body:body?JSON.stringify(body):undefined});
+  if(r.status===401){ui.needCode=true;render();throw new Error('code')}
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok)throw new Error(j.error||'The server refused that request.');
+  return j;
+}
+const emit=(type,data,id)=>{const r={id:id||uid(),vid:VID,type,data};OUT.push(r);return r.id};
+// Send what this device has queued, then take the server's current state. Safe to repeat.
+async function flush(quiet){
+  if(!VID||!canTry())return;
+  if(busy){again=true;return}
+  busy=true;const vid=VID;
+  try{
+    const all=OUT.filter(r=>r.vid===vid),mine=all.slice(0,150);
+    const res=await api('POST',`/vessels/${vid}/sync`,{records:mine.map(({id,type,data})=>({id,type,data}))});
+    const done=new Set([...res.accepted,...res.duplicate]),bad=new Map(res.rejected.map(x=>[x.id,x.reason]));
+    const n=mine.filter(r=>done.has(r.id)&&r.type!=='activity'&&r.type!=='photo').length;
+    if(bad.size)LS.set('tys-rejected',(LS.get('tys-rejected')||[]).concat(OUT.filter(r=>bad.has(r.id)).map(r=>({...r,why:bad.get(r.id)}))).slice(-50));
+    OUT=OUT.filter(r=>!(r.vid===vid&&(done.has(r.id)||bad.has(r.id))));
+    ui.netDown=false;
+    if(vid===VID)applyState(res.state);
+    if(bad.size)toast(`${bad.size} record${bad.size>1?'s':''} could not be saved on shore. A copy is kept on this device.`);
+    else if(n&&!quiet)toast(`Signal is back. ${n} record${n>1?'s':''} synced to shore.`);
+    if(OUT.some(r=>r.vid===VID))again=true;
+  }catch(e){if(e.message!=='code')ui.netDown=true}
+  finally{busy=false;render();if(again){again=false;flush(true)}}
+}
+async function pickVessel(id){
+  VID=id;LS.set('tys-vessel',id);S=LS.get('tys-cache-'+id)||emptyS();ui.run=null;ui.modal=null;ui.sel=null;render();
+  try{VESSELS=await api('GET','/vessels')}catch(e){}
+  await flush(true);
+}
+async function boot(){
+  S=(VID&&LS.get('tys-cache-'+VID))||emptyS();render();
+  try{
+    VESSELS=await api('GET','/vessels');ui.netDown=false;
+    if(!VESSELS.some(v=>v.id===VID)){VID=VESSELS[0]?VESSELS[0].id:'';LS.set('tys-vessel',VID);S=emptyS()}
+    if(VID)await flush(true);else{ui.surface='console';ui.con='vessel';render()}
+  }catch(e){if(e.message!=='code'){ui.netDown=true;render()}}
+}
+async function pinOk(u,pin){
+  if(!crypto.subtle)throw new Error('PIN sign-off needs a secure (https) connection.');
+  const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(`${VID}:${pin}`));
+  return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')===u.pinHash;
+}
+function shrink(file){return new Promise((ok,no)=>{const rd=new FileReader();rd.onerror=no;rd.onload=()=>{const im=new Image();im.onerror=()=>ok(rd.result);im.onload=()=>{try{const k=Math.min(1,1280/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext('2d').drawImage(im,0,0,c.width,c.height);ok(c.toDataURL('image/jpeg',.72))}catch(e){ok(rd.result)}};im.src=rd.result};rd.readAsDataURL(file)})}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.style.display='block';clearTimeout(toast.h);toast.h=setTimeout(()=>t.style.display='none',3200)}
+const getCl=id=>S.checklists.find(c=>c.id===id);
+const pending=()=>OUT.filter(r=>r.vid===VID&&r.type!=='activity'&&r.type!=='photo').length;
+const act=text=>{const a={id:uid(),at:Date.now(),text,synced:false};S.activity.unshift(a);emit('activity',{at:a.at,text},a.id)};
+const flagged=(it,a)=>{a=a||{};if(it.type==='check')return a.val==='fail';if(it.type==='reading'&&a.val!==''&&a.val!=null){const n=Number(a.val);return (it.min!=null&&n<it.min)||(it.max!=null&&n>it.max)}return false};
+function dueState(d){const s0=sod();if(d.runId)return 'done';if(d.dueAt<s0)return 'overdue';if(d.dueAt<s0+D)return 'today';return 'soon'}
+const photoHtml=k=>{if(!k)return '';const q=OUT.find(r=>r.id===k),src=PH[k]||(q&&q.data.dataUrl)||(online()?'/api/photos/'+encodeURIComponent(k):'');return src?`<img class="photo" src="${esc(src)}" alt="Photo attached to this record">`:'<span class="pill">Photo on file. Shows when connected</span>'};
+
+/* ---------- top bar ---------- */
+function renderBar(){
+  const p=pending(),on=online();
+  document.getElementById('bar').innerHTML=`<div class="brand">THE YACHT STANDARD<small>Pilot build</small></div>
+  ${VESSELS.length>1?`<select id="vessel-pick" data-in="pickvessel" aria-label="Vessel" style="width:auto;min-height:40px;background:#151515;color:#fff;border-color:#3d3d3d">${VESSELS.map(v=>`<option value="${esc(v.id)}" ${v.id===VID?'selected':''}>${esc(v.name)}</option>`).join('')}</select>`:''}
+  <div class="seg" role="group" aria-label="Surface">${[['ipad','Onboard iPad'],['phone','Phone'],['console','Console']].map(([k,l])=>`<button data-a="surface" data-v="${k}" aria-pressed="${ui.surface===k}">${l}</button>`).join('')}</div>
+  <span class="pill ${on?'ok':'warn'}">${on?'Connected':p?`Offline, ${p} waiting`:'Offline'}</span>
+  <button class="ghost sig ${ui.simOff?'off':''}" data-a="signal">${ui.simOff?'Test mode: signal off. Turn on':'Test: go offline'}</button>`;
+}
+
+/* ---------- iPad ---------- */
+function vIpad(){
+  const tabs=[['today','Today'],['trip','Trip'],['log','Running log'],['issues','Issues'],['vessel','Vessel']];
+  const open=S.issues.filter(i=>i.status==='open').length, p=pending();
+  const body=ui.run?vRun():({today:vToday,trip:vTrip,log:vLog,issues:()=>vIssues('ipad'),vessel:vVessel})[ui.ipad]();
+  return `<div class="device ipad"><aside><div class="vn">${esc(S.vessel.name)}</div><div class="vs">Standard v${S.version}</div>
+  ${tabs.map(([k,l])=>`<button class="nav" data-a="itab" data-v="${k}" aria-current="${!ui.run&&ui.ipad===k}">${l}${k==='issues'&&open?` (${open})`:''}</button>`).join('')}</aside>
+  <section class="pane"><div class="strip"><span class="muted sm">${new Date().toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'})}</span>
+  ${online()?'<span class="pill ok">Synced</span>':`<span class="pill warn">Offline. ${p} record${p===1?'':'s'} saved on this iPad</span>`}</div>${body}</section></div>`;
+}
+function dueRow(d){
+  const c=getCl(d.clId);if(!c)return '';const st=dueState(d);
+  const pill={overdue:`<span class="pill bad">Overdue since ${fd(d.dueAt)}</span>`,today:'<span class="pill warn">Due today</span>',soon:`<span class="pill">Due ${fd(d.dueAt)}</span>`,done:'<span class="pill ok">Signed</span>'}[st];
+  if(st==='done'){const r=S.runs.find(x=>x.id===d.runId);return `<button class="row" data-a="rundetail" data-id="${d.runId}"><span><span class="t">${esc(c.name)}</span><br><span class="s">${r?esc(r.by)+', '+ft(r.at):''}</span></span>${pill}</button>`}
+  return `<button class="row" data-a="start" data-cl="${c.id}" data-due="${d.id}"><span><span class="t">${esc(c.name)}</span><br><span class="s">${esc(c.freq)} · ${esc(c.role)} · ${c.items.length} items</span></span>${pill}</button>`;
+}
+function vToday(){
+  const g=k=>S.due.filter(d=>dueState(d)===k).map(dueRow).join('');
+  const wait=S.runs.filter(r=>r.needsCounter&&!r.counterBy);
+  const ev=S.checklists.filter(c=>c.event==='owner');
+  return `<h2>Today</h2>${S.version?'':'<div class="note">No standard is published for this vessel yet. Build and publish it in the Console.</div>'}
+  ${S.seenVersion?'':`<div class="note info"><span>Standard v${S.version} received from The Yacht Standard. New checks use it from now on.</span><button class="btn sm alt" data-a="seen">Got it</button></div>`}
+  ${g('overdue')?`<div class="sec">Overdue</div><div class="list">${g('overdue')}</div>`:''}
+  <div class="sec">Due today</div><div class="list">${g('today')||'<p class="muted">Nothing else due today.</p>'}</div>
+  ${wait.length?`<div class="sec">Waiting for the captain</div><div class="list">${wait.map(r=>`<div class="row"><span><span class="t">${esc(r.clName)}</span><br><span class="s">Signed by ${esc(r.by)}, ${ft(r.at)}</span></span><button class="btn sm" data-a="counter" data-id="${r.id}">Countersign</button></div>`).join('')}</div>`:''}
+  ${g('soon')?`<div class="sec">Coming up</div><div class="list">${g('soon')}</div>`:''}
+  ${ev.length?`<div class="sec">Start when needed</div><div class="list">${ev.map(c=>`<button class="row" data-a="start" data-cl="${c.id}"><span><span class="t">${esc(c.name)}</span><br><span class="s">${c.items.length} items · ${esc(c.role)}</span></span><span class="pill">On demand</span></button>`).join('')}</div>`:''}
+  ${g('done')?`<div class="sec">Done</div><div class="list">${g('done')}</div>`:''}`;
+}
+function vRun(){
+  const r=ui.run,c=getCl(r.clId);
+  const rows=c.items.map((it,n)=>{
+    const a=r.ans[it.id]||{},fl=flagged(it,a);let ctl='';
+    if(it.type==='check')ctl=`<div class="choice">${[['pass','Pass','p'],['fail','Fail','f'],['na','N/A','n']].map(([v,l,k])=>`<button class="${k}" data-a="ans" data-i="${it.id}" data-v="${v}" aria-pressed="${a.val===v}">${l}</button>`).join('')}</div>`;
+    if(it.type==='reading')ctl=`<label for="rd-${it.id}">Reading${it.unit?' in '+esc(it.unit):''}${it.min!=null?` (expected ${it.min} to ${it.max})`:''}<input id="rd-${it.id}" type="number" inputmode="decimal" data-in="read" data-i="${it.id}" value="${esc(a.val??'')}"></label>${fl?'<span class="pill bad">Outside the expected range. This will open an issue.</span>':''}`;
+    if(it.type==='note')ctl=`<label for="nt-${it.id}">Note<textarea id="nt-${it.id}" data-in="val" data-i="${it.id}">${esc(a.val??'')}</textarea></label>`;
+    const needP=it.type==='photo'||(it.type==='check'&&fl);
+    const extra=fl?`<label for="fn-${it.id}">What did you find?<textarea id="fn-${it.id}" data-in="note" data-i="${it.id}">${esc(a.note??'')}</textarea></label>`:'';
+    const ph=needP?`<div class="strip" style="justify-content:flex-start">${a.photo?photoHtml(a.photo):''}<label class="btn sm alt" for="ph-${it.id}" style="display:inline-flex;align-items:center;justify-content:center;flex-direction:row;color:var(--ink)">Take or choose a photo</label><input id="ph-${it.id}" type="file" accept="image/*" data-in="file" data-i="${it.id}" hidden>${VID==='meridian'?`<button class="btn sm alt" data-a="sample" data-i="${it.id}">Use sample photo</button>`:''}</div>`:'';
+    return `<div class="item ${fl?'flag':''}"><div class="q">${n+1}. ${esc(it.text)}</div>${ctl}${extra}${ph}</div>`;
+  }).join('');
+  return `<div class="strip"><h2>${esc(c.name)}</h2><button class="btn sm alt" data-a="cancelrun">Cancel</button></div>
+  <p class="muted sm">Standard v${S.version} · assigned to ${esc(c.role)}${c.countersign?' · captain countersigns':''}</p>
+  ${rows}<button class="btn brass" data-a="sign">Sign off</button>`;
+}
+function vTrip(){
+  const t=S.trip,by=e=>S.checklists.find(c=>c.event===e);
+  let b='';
+  if(!t)b=`<p>No trip under way.</p><label for="tripname">Trip name<input id="tripname" type="text" placeholder="Home dock to Bimini"></label><button class="btn" data-a="tripstart">Start a trip</button>`;
+  else{
+    const steps=[['pre','Pre-departure'],['underway','Under way'],['arr','Arrival'],['post','Post-trip']],ix=steps.findIndex(s=>s[0]===t.stage);
+    b=`<div class="strip" style="justify-content:flex-start">${steps.map((s,i)=>`<span class="pill ${i<ix?'ok':i===ix?'warn':''}">${i+1}. ${s[1]}</span>`).join('')}</div><h3>${esc(t.name)}</h3><p class="muted sm">Started ${ft(t.startedAt)}</p>`;
+    if(t.stage==='underway')b+=`<p>Add log entries from the Running log tab while under way.</p><div class="strip" style="justify-content:flex-start"><button class="btn alt" data-a="itab" data-v="log">Open the running log</button><button class="btn" data-a="triparrive">We have arrived</button></div>`;
+    else{const c=by(t.stage);b+=c?`<button class="btn" data-a="start" data-cl="${c.id}" data-stage="${t.stage}">Run the ${esc(c.name.toLowerCase())} checklist</button>`:`<p class="muted">No ${t.stage} checklist is published for this vessel.</p><button class="btn alt" data-a="tripskip">Skip this step</button>`}
+  }
+  return `<h2>Trip</h2>${b}<div class="sec">Past trips</div><div class="list">${S.trips.map(x=>`<div class="row"><span><span class="t">${esc(x.name)}</span><br><span class="s">${fd(x.startedAt)} to ${fd(x.closedAt)}</span></span><span class="pill ok">Closed</span></div>`).join('')||'<p class="muted">None yet.</p>'}</div>`;
+}
+function logTable(rows){return `<div class="tw"><table><thead><tr><th>When</th><th>By</th><th>Port hrs</th><th>Stbd hrs</th><th>Gen hrs</th><th>Fuel %</th><th>Note</th></tr></thead><tbody>${rows.map(l=>`<tr><td>${ft(l.at)}</td><td>${esc(l.by)}</td><td class="num">${esc(l.port)}</td><td class="num">${esc(l.stbd)}</td><td class="num">${esc(l.gen)}</td><td class="num">${esc(l.fuel)}</td><td>${esc(l.note)}${l.synced?'':' <span class="pill warn">Not synced</span>'}</td></tr>`).join('')}</tbody></table></div>`}
+function vLog(){
+  return `<h2>Running log</h2><div class="grid">
+  <label for="lg-by">Entered by<select id="lg-by">${S.users.map(u=>`<option>${esc(u.name)}</option>`).join('')}</select></label>
+  <label for="lg-port">Port engine hours<input id="lg-port" type="text" inputmode="decimal"></label>
+  <label for="lg-stbd">Starboard engine hours<input id="lg-stbd" type="text" inputmode="decimal"></label>
+  <label for="lg-gen">Generator hours<input id="lg-gen" type="text" inputmode="decimal"></label>
+  <label for="lg-fuel">Fuel %<input id="lg-fuel" type="text" inputmode="decimal"></label></div>
+  <label for="lg-note">Note<input id="lg-note" type="text"></label><button class="btn" data-a="logadd">Add entry</button>${logTable(S.logs)}`;
+}
+function vIssues(ctx){
+  const src=ctx==='ipad'?S.issues:S.issues.filter(i=>i.synced);
+  const row=i=>{const late=i.status==='open'&&i.due&&new Date(i.due+'T23:59').getTime()<Date.now();
+    return `<button class="row" data-a="issue" data-id="${i.id}" data-ctx="${ctx}"><span><span class="t">${esc(i.title)}</span><br><span class="s">${esc(i.from)} · raised by ${esc(i.by)}, ${fd(i.at)}${i.assignee?' · with '+esc(i.assignee):' · not assigned'}</span></span>${i.status==='closed'?'<span class="pill ok">Closed</span>':late?'<span class="pill bad">Past due</span>':i.fix?'<span class="pill warn">Fixed, awaiting close</span>':'<span class="pill warn">Open</span>'}</button>`};
+  const o=src.filter(i=>i.status==='open'),c=src.filter(i=>i.status==='closed');
+  return `<h2>Issues</h2><div class="sec">Open</div><div class="list">${o.map(row).join('')||'<p class="muted">No open issues.</p>'}</div><div class="sec">Closed</div><div class="list">${c.map(row).join('')||'<p class="muted">None yet.</p>'}</div>`;
+}
+function vVessel(){
+  const v=S.vessel;
+  return `<h2>${esc(v.name)}</h2><p class="muted">${esc(v.type)}, ${esc(v.year)} · ${esc(v.port)} · Owner: ${esc(v.owner)}</p>
+  <div class="sec">Equipment</div><div class="tw"><table><thead><tr><th>System</th><th>Detail</th><th>Location</th></tr></thead><tbody>${S.equipment.map(e=>`<tr><td>${esc(e.name)}</td><td>${esc(e.detail)}</td><td>${esc(e.loc)}</td></tr>`).join('')}</tbody></table></div>
+  <div class="sec">Crew</div><div class="list">${S.users.map(u=>`<div class="row"><span class="t">${esc(u.name)}</span><span class="pill">${esc(u.role)}</span></div>`).join('')}</div>`;
+}
+
+/* ---------- phone ---------- */
+function weekStats(){const d=S.due.filter(x=>dueState(x)!=='soon'||x.runId);const done=d.filter(x=>{const r=S.runs.find(r=>r.id===x.runId);return r&&r.synced}).length;return {done,total:d.length,over:d.filter(x=>dueState(x)==='overdue').length}}
+function vPhone(){
+  const cap=ui.phoneRole==='captain';
+  const tabs=[['status','Status'],['issues','Issues'],['activity','Activity'],['reports','Reports']];if(cap)tabs.push(['review','Review']);
+  if(!tabs.some(t=>t[0]===ui.phone))ui.phone='status';
+  const w=weekStats(),open=S.issues.filter(i=>i.synced&&i.status==='open'),lastTrip=S.trips[0];
+  let b='';
+  if(ui.phone==='status'){
+    const att=[...S.due.filter(d=>dueState(d)==='overdue').map(d=>`<div class="row"><span class="t">${esc(getCl(d.clId)?.name)}</span><span class="pill bad">Overdue since ${fd(d.dueAt)}</span></div>`),
+      ...open.map(i=>`<button class="row" data-a="issue" data-id="${i.id}" data-ctx="${ui.phoneRole}"><span class="t">${esc(i.title)}</span><span class="pill warn">Open issue</span></button>`)].join('');
+    b=`${online()?'':`<div class="note">The yacht is out of signal. Showing what last synced at ${ft(S.lastSync)}.</div>`}
+    <div class="tiles"><div class="tile"><b>${w.done} of ${w.total}</b><span>checks signed this week</span></div><div class="tile"><b>${open.length}</b><span>open issue${open.length===1?'':'s'}</span></div><div class="tile"><b>v${S.version}</b><span>${S.published?'standard, published '+fd(S.published):'no standard published yet'}</span></div></div>
+    <div class="sec">Needs attention</div><div class="list">${att||'<p class="muted">Nothing needs attention.</p>'}</div>
+    <div class="sec">Last trip</div>${lastTrip?`<div class="row"><span><span class="t">${esc(lastTrip.name)}</span><br><span class="s">${fd(lastTrip.startedAt)} to ${fd(lastTrip.closedAt)}</span></span></div>`:'<p class="muted">No trips yet.</p>'}
+    ${S.trip&&online()?`<div class="note info">Trip under way: ${esc(S.trip.name)}</div>`:''}`;
+  }
+  if(ui.phone==='issues')b=vIssues(ui.phoneRole);
+  if(ui.phone==='activity')b=`<h2>Activity</h2><div class="list">${S.activity.filter(a=>a.synced).slice(0,25).map(a=>`<div class="row"><span><span class="t" style="font-weight:500">${esc(a.text)}</span><br><span class="s">${ft(a.at)}</span></span></div>`).join('')}</div>`;
+  if(ui.phone==='reports')b=`<h2>Reports</h2><div class="list"><button class="row" data-a="report" data-days="30"><span><span class="t">Vessel Standard Report</span><br><span class="s">Last 30 days. Sent to the owner on the first of each month.</span></span><span class="pill">Open</span></button><button class="row" data-a="report" data-days="90"><span><span class="t">Safety and maintenance log</span><br><span class="s">Last 90 days, for a manager, broker or insurer.</span></span><span class="pill">Open</span></button></div>`;
+  if(ui.phone==='review'){
+    const wait=S.runs.filter(r=>r.synced&&r.needsCounter&&!r.counterBy);
+    b=`<h2>Review</h2><div class="sec">Waiting for your countersign</div><div class="list">${wait.map(r=>`<div class="row"><button class="btn sm alt" data-a="rundetail" data-id="${r.id}">View</button><span style="flex:1"><span class="t">${esc(r.clName)}</span><br><span class="s">${esc(r.by)}, ${ft(r.at)}</span></span><button class="btn sm" data-a="counterphone" data-id="${r.id}">Countersign</button></div>`).join('')||'<p class="muted">Nothing waiting.</p>'}</div>
+    <div class="sec">Ask for a change to the standard</div><label for="rq">What should be added, dropped or reworded?<textarea id="rq"></textarea></label><button class="btn" data-a="request">Send to The Yacht Standard</button>
+    <div class="list">${S.requests.map(q=>`<div class="row"><span><span class="t" style="font-weight:500">${esc(q.text)}</span><br><span class="s">${fd(q.at)}</span></span><span class="pill ${q.status==='done'?'ok':'warn'}">${q.status==='done'?'Done':'With the team'}</span></div>`).join('')}</div>`;
+  }
+  return `<div class="device phone"><div class="ph"><div class="strip"><h2>${esc(S.vessel.name)}</h2><div class="seg" role="group" aria-label="Signed in as"><button data-a="prole" data-v="owner" aria-pressed="${!cap}">Owner</button><button data-a="prole" data-v="captain" aria-pressed="${cap}">Captain</button></div></div></div>
+  <div class="tabs">${tabs.map(([k,l])=>`<button data-a="ptab" data-v="${k}" aria-current="${ui.phone===k}">${l}</button>`).join('')}</div><section class="pane">${b}</section></div>`;
+}
+
+/* ---------- console ---------- */
+function vConsole(){
+  const tabs=[['checklists','Checklists'],['library','Template library'],['vessel','Vessel and equipment'],['crew','Crew and PINs'],['requests','Change requests'],['publish','Publish']];
+  const dirty=JSON.stringify(S.draft)!==JSON.stringify(S.checklists);let b='';
+  if(ui.con==='checklists'){
+    const c=S.draft.find(x=>x.id===ui.sel)||S.draft[0];if(c)ui.sel=c.id;
+    b=`<div class="split"><div class="list">${S.draft.map(x=>`<button class="row ${x.id===ui.sel?'sel':''}" data-a="selcl" data-id="${x.id}"><span><span class="t">${esc(x.name)}</span><br><span class="s">${esc(x.freq)} · ${x.items.length} items</span></span></button>`).join('')}<button class="btn alt" data-a="newcl">New checklist</button></div>
+    <div class="list">${c?`<div class="grid"><label for="cl-name">Name<input id="cl-name" type="text" data-in="cl" data-f="name" value="${esc(c.name)}"></label>
+      <label for="cl-freq">Schedule<select id="cl-freq" data-in="cl" data-f="freq">${['Weekly','Monthly','Quarterly','Every 10 days','On demand'].map(f=>`<option ${c.freq===f?'selected':''}>${f}</option>`).join('')}</select></label>
+      <label for="cl-role">Assigned to<select id="cl-role" data-in="cl" data-f="role">${['Captain','Engineer','Deckhand'].map(f=>`<option ${c.role===f?'selected':''}>${f}</option>`).join('')}</select></label>
+      <label for="cl-ev">Trip step<select id="cl-ev" data-in="cl" data-f="event">${[['','None'],['pre','Pre-departure'],['arr','Arrival'],['post','Post-trip'],['owner','Owner readiness']].map(([v,l])=>`<option value="${v}" ${c.event===v?'selected':''}>${l}</option>`).join('')}</select></label></div>
+      <label style="flex-direction:row;align-items:center;gap:8px" for="cl-cs"><input id="cl-cs" type="checkbox" data-in="clcs" ${c.countersign?'checked':''} style="width:20px;height:20px"> Captain countersigns this checklist</label>
+      <div class="tw"><table><thead><tr><th>#</th><th>Item</th><th>Type</th><th>Expected</th><th></th></tr></thead><tbody>${c.items.map((it,n)=>`<tr><td class="num">${n+1}</td><td>${esc(it.text)}</td><td>${{check:'Pass / fail',reading:'Reading',note:'Note',photo:'Photo'}[it.type]}</td><td class="num">${it.type==='reading'?(it.min!=null?`${it.min} to ${it.max} ${esc(it.unit)}`:esc(it.unit)):''}</td><td><button class="btn sm alt" data-a="delitem" data-i="${it.id}" aria-label="Remove item ${n+1}">Remove</button></td></tr>`).join('')}</tbody></table></div>
+      <div class="sec">Add an item</div><div class="grid"><label for="ni-text" style="grid-column:1/-1">Item text<input id="ni-text" type="text"></label>
+      <label for="ni-type">Type<select id="ni-type"><option value="check">Pass / fail</option><option value="reading">Reading</option><option value="note">Note</option><option value="photo">Photo</option></select></label>
+      <label for="ni-unit">Unit<input id="ni-unit" type="text" placeholder="psi"></label><label for="ni-min">Min<input id="ni-min" type="number"></label><label for="ni-max">Max<input id="ni-max" type="number"></label></div>
+      <div class="strip" style="justify-content:flex-start"><button class="btn" data-a="additem">Add item</button>
+      <select id="lib-pick" style="width:auto" aria-label="Template block">${LIB.map((l,i)=>`<option value="${i}">${esc(l.name)} (${l.items.length} items)</option>`).join('')}</select><button class="btn alt" data-a="addblock">Add block from library</button></div>`:'<p class="muted">No checklists yet.</p>'}</div></div>`;
+  }
+  if(ui.con==='library')b=`<p class="muted">Reusable blocks by equipment type. Copy a block into a checklist, then tailor it to the boat.</p><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr))">${LIB.map(l=>`<div class="item"><h3>${esc(l.name)}</h3><ol style="margin:0;padding-left:20px">${l.items.map(i=>`<li>${esc(i[0])}${i[1]==='reading'?` <span class="muted sm">(${i[3]} to ${i[4]} ${esc(i[2])})</span>`:i[1]==='photo'?' <span class="muted sm">(photo)</span>':''}</li>`).join('')}</ol></div>`).join('')}</div>`;
+  const nvForm=`<div class="sec">Add a vessel</div><div class="grid"><label for="nv-name">Vessel name<input id="nv-name" type="text"></label><label for="nv-type">Type<input id="nv-type" type="text" placeholder="62 ft sportfish"></label><label for="nv-port">Home port<input id="nv-port" type="text"></label><label for="nv-owner">Owner<input id="nv-owner" type="text"></label></div><button class="btn alt" data-a="newvessel" style="align-self:flex-start">Create vessel</button>`;
+  if(ui.con==='vessel'&&!VID)b=`<p>No vessel yet. Create the first one to start onboarding.</p>${nvForm}`;
+  else if(ui.con==='vessel'){const v=S.vessel;b=`<div class="grid">${[['name','Vessel name'],['type','Type'],['year','Year'],['port','Home port'],['owner','Owner']].map(([f,l])=>`<label for="v-${f}">${l}<input id="v-${f}" type="text" data-in="vessel" data-f="${f}" value="${esc(v[f])}"></label>`).join('')}</div>
+    <div class="sec">Equipment profile</div><div class="tw"><table><thead><tr><th>System</th><th>Detail</th><th>Location</th></tr></thead><tbody>${S.equipment.map(e=>`<tr><td>${esc(e.name)}</td><td>${esc(e.detail)}</td><td>${esc(e.loc)}</td></tr>`).join('')}</tbody></table></div>
+    <div class="grid"><label for="eq-name">System<input id="eq-name" type="text"></label><label for="eq-detail">Detail<input id="eq-detail" type="text"></label><label for="eq-loc">Location<input id="eq-loc" type="text"></label></div><button class="btn" data-a="addeq" style="align-self:flex-start">Add equipment</button>${nvForm}`}
+  if(ui.con==='crew')b=`<div class="tw"><table><thead><tr><th>Name</th><th>Role</th><th>PIN</th></tr></thead><tbody>${S.users.map(u=>`<tr><td>${esc(u.name)}</td><td>${esc(u.role)}</td><td>Set</td></tr>`).join('')}</tbody></table></div>
+    <div class="grid"><label for="cr-name">Name<input id="cr-name" type="text"></label><label for="cr-role">Role<select id="cr-role"><option>Deckhand</option><option>Engineer</option><option>Captain</option></select></label><label for="cr-pin">4-digit PIN<input id="cr-pin" type="text" inputmode="numeric" maxlength="4"></label></div><button class="btn" data-a="addcrew" style="align-self:flex-start">Add crew member</button>`;
+  if(ui.con==='requests')b=`<div class="list">${S.requests.map(q=>`<div class="row"><span><span class="t" style="font-weight:500">${esc(q.text)}</span><br><span class="s">${esc(q.by)}, ${fd(q.at)}</span></span>${q.status==='done'?'<span class="pill ok">Done</span>':`<button class="btn sm" data-a="reqdone" data-id="${q.id}">Mark done</button>`}</div>`).join('')||'<p class="muted">No requests.</p>'}</div>`;
+  if(ui.con==='publish')b=`<div class="tiles"><div class="tile"><b>v${S.version}</b><span>${S.published?'on the iPad since '+fd(S.published):'nothing published yet'}</span></div><div class="tile"><b>${S.draft.length}</b><span>checklists in the draft</span></div><div class="tile"><b>${S.draft.reduce((n,c)=>n+c.items.length,0)}</b><span>items in the draft</span></div></div>
+    ${dirty?`<div class="note"><span>The draft differs from v${S.version}. Completed checks stay tied to the version they ran against.</span></div><button class="btn brass" data-a="publish" style="align-self:flex-start">Publish v${S.version+1} to the iPad</button>`:'<div class="note info">The draft matches what is on the iPad. Edit a checklist to prepare the next version.</div>'}`;
+  return `<div class="console"><div class="ch"><div><h2>Onboarding console</h2><p class="muted sm">${esc(S.vessel.name||'No vessel yet')} · used by The Yacht Standard team, not the customer</p></div>${dirty?'<span class="pill warn">Unpublished changes</span>':`<span class="pill ok">v${S.version} published</span>`}</div>
+  <div class="tabs">${tabs.map(([k,l])=>`<button data-a="ctab" data-v="${k}" aria-current="${ui.con===k}">${l}${k==='requests'&&S.requests.some(q=>q.status!=='done')?` (${S.requests.filter(q=>q.status!=='done').length})`:''}</button>`).join('')}</div><section class="pane">${b}</section></div>`;
+}
+
+/* ---------- modals ---------- */
+function runTable(r){return `<div class="tw"><table><thead><tr><th>Item</th><th>Result</th><th>Note</th></tr></thead><tbody>${r.results.map(x=>`<tr><td>${esc(x.text)}</td><td>${x.type==='check'?(x.val==='pass'?'<span class="pill ok">Pass</span>':x.val==='fail'?'<span class="pill bad">Fail</span>':'<span class="pill">N/A</span>'):x.type==='reading'?`<span class="pill ${x.flag?'bad':''}">${esc(x.val)} ${esc(x.unit)}</span>`:x.type==='photo'?'<span class="pill">Photo</span>':esc(x.val)}</td><td>${esc(x.note)}</td></tr>`).join('')}</tbody></table></div>`}
+function vReport(days){
+  const from=Date.now()-days*D,runs=S.runs.filter(r=>r.synced&&r.at>=from),iss=S.issues.filter(i=>i.synced&&i.at>=from),logs=S.logs.filter(l=>l.synced&&l.at>=from);
+  const closed=iss.filter(i=>i.status==='closed'),avg=closed.length?(closed.reduce((n,i)=>n+(i.closedAt-i.at),0)/closed.length/D).toFixed(1):'0';
+  return `<div class="report"><div><div class="rt">THE YACHT STANDARD</div><h2>${days===30?'Vessel Standard Report':'Safety and Maintenance Log'}</h2><p class="muted">${esc(S.vessel.name)}, ${esc(S.vessel.type)} · ${fd(from)} to ${fd(Date.now())} · Standard v${S.version}</p></div>
+  <div class="tiles"><div class="tile"><b>${runs.length}</b><span>checks signed</span></div><div class="tile"><b>${runs.reduce((n,r)=>n+r.results.filter(x=>x.flag).length,0)}</b><span>exceptions found</span></div><div class="tile"><b>${iss.filter(i=>i.status==='open').length}</b><span>issues still open</span></div><div class="tile"><b>${avg}</b><span>average days to close</span></div></div>
+  <h3>Checks completed</h3><div class="tw"><table><thead><tr><th>Date</th><th>Checklist</th><th>Signed by</th><th>Countersigned</th><th>Version</th><th>Exceptions</th></tr></thead><tbody>${runs.map(r=>`<tr><td>${ft(r.at)}</td><td>${esc(r.clName)}</td><td>${esc(r.by)}</td><td>${esc(r.counterBy||(r.needsCounter?'Pending':''))}</td><td class="num">v${r.version}</td><td class="num">${r.results.filter(x=>x.flag).length}</td></tr>`).join('')||'<tr><td colspan="6">None in this period.</td></tr>'}</tbody></table></div>
+  <h3>Issues</h3><div class="tw"><table><thead><tr><th>Raised</th><th>Issue</th><th>Status</th><th>Days open</th><th>Fix</th></tr></thead><tbody>${iss.map(i=>`<tr><td>${fd(i.at)}</td><td>${esc(i.title)}</td><td>${i.status==='closed'?'Closed':'Open'}</td><td class="num">${(((i.closedAt||Date.now())-i.at)/D).toFixed(1)}</td><td>${esc(i.fix)}</td></tr>`).join('')||'<tr><td colspan="5">None in this period.</td></tr>'}</tbody></table></div>
+  <h3>Running log</h3>${logs.length?logTable(logs):'<p class="muted">No entries in this period.</p>'}
+  <p class="muted sm">Records are locked at sign-off. PDF export is the next step.</p></div>`;
+}
+function renderModal(){
+  const m=ui.modal,el=document.getElementById('modal');if(!m){el.innerHTML='';return}
+  let h='',wide=false;
+  if(m.type==='sign'){
+    const us=m.captainOnly?S.users.filter(u=>u.role==='Captain'):S.users;
+    h=`<div class="x"><h2>${m.captainOnly?'Captain countersign':'Sign off'}</h2><button class="btn sm alt" data-a="close">Cancel</button></div>
+    <label for="sg-user">Who is signing?<select id="sg-user">${us.map(u=>`<option value="${u.id}">${esc(u.name)} (${esc(u.role)})</option>`).join('')}</select></label>
+    <label for="sg-pin">PIN<input id="sg-pin" type="password" inputmode="numeric" maxlength="4" autocomplete="off"></label>
+    ${m.err?`<span class="pill bad">${esc(m.err)}</span>`:''}<button class="btn brass" data-a="pin">Sign and lock the record</button>`;
+  }
+  if(m.type==='issue'){
+    const i=S.issues.find(x=>x.id===m.id),cap=m.ctx!=='owner',cl=i.status==='closed';
+    h=`<div class="x"><div><h2>${esc(i.title)}</h2><p class="muted sm">${esc(i.from)} · raised by ${esc(i.by)}, ${ft(i.at)}</p></div><button class="btn sm alt" data-a="close">Close window</button></div>
+    <p>${esc(i.note)}</p>${photoHtml(i.photo)}
+    ${cl?`<p><span class="pill ok">Closed ${fd(i.closedAt)}</span></p><p><b>Fix:</b> ${esc(i.fix)}</p>`:cap?`<div class="grid"><label for="is-as">Assigned to<select id="is-as"><option value="">Not assigned</option>${S.users.map(u=>`<option ${i.assignee===u.name?'selected':''}>${esc(u.name)}</option>`).join('')}</select></label><label for="is-due">Due date<input id="is-due" type="date" value="${esc(i.due)}"></label></div>
+      <label for="is-fix">Fix note<textarea id="is-fix">${esc(i.fix)}</textarea></label>
+      <div class="strip" style="justify-content:flex-start"><button class="btn alt" data-a="issave" data-id="${i.id}">Save</button><button class="btn" data-a="isclose" data-id="${i.id}">Captain: close the issue</button></div>`
+      :`<p class="muted sm">${i.assignee?'With '+esc(i.assignee):'Not assigned yet'}${i.due?', due '+esc(i.due):''}${i.fix?'. Fix note: '+esc(i.fix):''}</p>`}
+    <div class="sec">Comments</div>${i.comments.map(c=>`<p class="sm"><b>${esc(c.by)}:</b> ${esc(c.text)} <span class="muted">${fd(c.at)}</span></p>`).join('')||'<p class="muted sm">No comments.</p>'}
+    <div class="strip"><input id="is-cm" type="text" aria-label="Add a comment" placeholder="Add a comment" style="flex:1"><button class="btn sm" data-a="iscomment" data-id="${i.id}" data-who="${m.ctx==='owner'?'Owner':m.ctx==='captain'?'Captain':'Crew'}">Post</button></div>`;
+  }
+  if(m.type==='run'){const r=S.runs.find(x=>x.id===m.id);wide=true;h=`<div class="x"><div><h2>${esc(r.clName)}</h2><p class="muted sm">Signed by ${esc(r.by)}, ${ft(r.at)} · Standard v${r.version}${r.counterBy?' · countersigned by '+esc(r.counterBy):r.needsCounter?' · waiting for countersign':''} · locked</p></div><button class="btn sm alt" data-a="close">Close</button></div>${runTable(r)}`}
+  if(m.type==='report'){wide=true;h=`<div class="x"><span class="muted sm">Report preview</span><button class="btn sm alt" data-a="close">Close</button></div>${vReport(m.days)}`}
+  el.innerHTML=`<div class="modal" data-a="backdrop"><div class="sheet ${wide?'wide':''}" role="dialog" aria-modal="true">${h}</div></div>`;
+}
+
+/* ---------- actions ---------- */
+function render(){
+  const m=document.getElementById('app'),sc=m.scrollTop;
+  if(ui.needCode){m.innerHTML=`<div class="console"><section class="pane" style="max-width:420px"><h2>Access code</h2><p class="muted">Enter the pilot access code from The Yacht Standard.</p><label for="ac">Access code<input id="ac" type="password" autocomplete="off"></label><button class="btn" data-a="code" style="align-self:flex-start">Continue</button></section></div>`;renderBar();document.getElementById('modal').innerHTML='';return}
+  if(!VID&&ui.surface!=='console')m.innerHTML=`<div class="console"><section class="pane"><h2>No vessel yet</h2><p class="muted">${online()?'Open the Console to create the first vessel.':'This device has not connected yet. Check the connection and reload.'}</p></section></div>`;
+  else m.innerHTML=ui.surface==='ipad'?vIpad():ui.surface==='phone'?vPhone():vConsole();
+  m.scrollTop=sc;renderBar();renderModal();save();
+}
+const val=id=>{const e=document.getElementById(id);return e?e.value.trim():''};
+function validateRun(){
+  const r=ui.run,c=getCl(r.clId);
+  for(const [n,it] of c.items.entries()){const a=r.ans[it.id]||{},f=flagged(it,a),k=`Item ${n+1}`;
+    if(it.type==='check'&&!a.val)return `${k} needs an answer.`;
+    if(it.type==='reading'&&(a.val===''||a.val==null||isNaN(Number(a.val))))return `${k} needs a reading.`;
+    if(it.type==='photo'&&!a.photo)return `${k} needs a photo.`;
+    if(f&&!(a.note||'').trim())return `${k}: add a note about what you found.`;
+    if(f&&it.type==='check'&&!a.photo)return `${k}: add a photo of the problem.`}
+  return '';
+}
+function finishRun(u){
+  const r=ui.run,c=getCl(r.clId),t=Date.now();
+  const results=c.items.map(it=>{const a=r.ans[it.id]||{};return {text:it.text,type:it.type,unit:it.unit,val:a.val??'',note:a.note||'',photo:a.photo||null,flag:flagged(it,a)}});
+  results.forEach(x=>{if(x.photo&&PH[x.photo])emit('photo',{dataUrl:PH[x.photo]},x.photo)});
+  const run={id:uid(),clId:c.id,clName:c.name,version:S.version,by:u.name,at:t,results,synced:false,needsCounter:c.countersign&&u.role!=='Captain',counterBy:null,tripId:S.trip?S.trip.id:null,dueId:r.dueId||null};
+  S.runs.unshift(run);
+  emit('run',{clId:run.clId,clName:run.clName,version:run.version,by:run.by,at:t,results,needsCounter:run.needsCounter,tripId:run.tripId,dueId:run.dueId},run.id);
+  const fl=results.filter(x=>x.flag);
+  fl.forEach(x=>{const i={id:uid(),title:x.text+(x.type==='reading'?` (read ${x.val} ${x.unit})`:''),note:x.note,photo:x.photo,by:u.name,at:t,from:c.name,assignee:'',due:'',status:'open',fix:'',closedAt:null,comments:[],synced:false};
+    S.issues.unshift(i);emit('issue',{title:i.title,note:i.note,photo:i.photo,by:i.by,at:t,from:i.from},i.id)});
+  const d=S.due.find(x=>x.id===r.dueId);if(d)d.runId=run.id;
+  act(`${u.name} signed ${c.name}${fl.length?` and raised ${fl.length} issue${fl.length>1?'s':''}`:''}`);
+  if(r.stage&&S.trip){if(r.stage==='pre')S.trip.stage='underway';else if(r.stage==='arr')S.trip.stage='post';else if(r.stage==='post')closeTrip()}
+  ui.run=null;ui.modal=null;if(r.stage)ui.ipad='trip';
+  toast(`Signed and locked.${fl.length?` ${fl.length} issue${fl.length>1?'s':''} opened.`:''}${online()?'':' Saved on this iPad until signal returns.'}`);
+}
+function closeTrip(){const t={id:S.trip.id,name:S.trip.name,startedAt:S.trip.startedAt,closedAt:Date.now()};S.trips.unshift(t);emit('trip',{name:t.name,startedAt:t.startedAt,closedAt:t.closedAt},t.id);act(`Trip closed: ${t.name}`);S.trip=null}
+function advanceTrip(){const o=['pre','underway','arr','post'],i=o.indexOf(S.trip.stage);if(i===3)closeTrip();else S.trip.stage=o[i+1]}
+
+const CON=['newcl','delitem','additem','addblock','addeq','addcrew','publish','reqdone','newvessel'];
+async function saveDraft(){ui.saving++;try{await api('PUT',`/vessels/${VID}/draft`,{draft:S.draft})}catch(e){if(e.message!=='code')toast('The draft did not save. '+e.message)}finally{ui.saving--}}
+async function conAct(a,d){
+  if(!online()){toast('The console needs a connection.');return}
+  const c=S.draft.find(x=>x.id===ui.sel);
+  try{switch(a){
+    case 'newcl':{const n={id:uid(),name:'New checklist',freq:'Weekly',role:'Deckhand',countersign:false,event:'',items:[]};S.draft.push(n);ui.sel=n.id;render();await saveDraft();break}
+    case 'delitem':c.items=c.items.filter(i=>i.id!==d.i);render();await saveDraft();break;
+    case 'additem':{const t=val('ni-text');if(!t){toast('Enter the item text.');return}const ty=val('ni-type'),mn=val('ni-min'),mx=val('ni-max'),rg=ty==='reading'&&mn!==''&&mx!=='';
+      c.items.push(I(t,ty,ty==='reading'?val('ni-unit'):'',rg?Number(mn):null,rg?Number(mx):null));render();await saveDraft();break}
+    case 'addblock':{const l=LIB[Number(val('lib-pick'))];c.items.push(...l.items.map(i=>I(...i)));render();toast(`${l.name} block added. Tailor the items to this boat.`);await saveDraft();break}
+    case 'addeq':{if(!val('eq-name')){toast('Enter the system name.');return}await api('POST',`/vessels/${VID}/equipment`,{name:val('eq-name'),detail:val('eq-detail'),loc:val('eq-loc')});await flush(true);break}
+    case 'addcrew':{const p=val('cr-pin');if(!val('cr-name')||!/^\d{4}$/.test(p)){toast('Enter a name and a 4-digit PIN.');return}await api('POST',`/vessels/${VID}/users`,{name:val('cr-name'),role:val('cr-role'),pin:p});toast('Crew member added.');await flush(true);break}
+    case 'reqdone':await api('POST',`/vessels/${VID}/requests/${encodeURIComponent(d.id)}/done`);await flush(true);break;
+    case 'publish':{const r=await api('POST',`/vessels/${VID}/publish`);await flush(true);toast(`v${r.version} is published. Each iPad picks it up at its next sync.`);break}
+    case 'newvessel':{const n=val('nv-name');if(!n){toast('Enter the vessel name.');return}const r=await api('POST','/vessels',{name:n,type:val('nv-type'),port:val('nv-port'),owner:val('nv-owner')});await pickVessel(r.id);ui.con='vessel';render();toast(`${n} created. Add equipment and crew, then build its checklists.`);break}
+  }}catch(e){if(e.message!=='code')toast(e.message)}
+}
+async function doPin(){
+  const u=S.users.find(x=>x.id===val('sg-user')),pin=val('sg-pin');let ok=false;
+  try{ok=!!u&&await pinOk(u,pin)}catch(e){ui.modal.err=e.message;return render()}
+  if(!ui.modal)return;
+  if(!ok){ui.modal.err='That PIN does not match. Try again.';return render()}
+  if(ui.modal.runId){const r=S.runs.find(x=>x.id===ui.modal.runId);r.counterBy=u.name;emit('countersign',{runId:r.id,by:u.name,at:Date.now()});act(`${u.name} countersigned ${r.clName}`);ui.modal=null;toast('Countersigned.')}else finishRun(u);
+  render();flush(true);
+}
+const captainName=()=>(S.users.find(x=>x.role==='Captain')||{name:'Captain'}).name;
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a,d=b.dataset;
+  if(a==='backdrop'){if(e.target!==b)return;ui.modal=null;return render()}
+  if(CON.includes(a)){conAct(a,d);return}
+  if(a==='pin'){doPin();return}
+  switch(a){
+    case 'code':code=val('ac');LS.set('tys-code',code);ui.needCode=false;boot();return;
+    case 'surface':ui.surface=d.v;break;
+    case 'signal':ui.simOff=!ui.simOff;if(ui.simOff)toast('Test mode: this device is offline. It keeps working.');else{render();flush(false);return}break;
+    case 'itab':ui.ipad=d.v;ui.run=null;break;
+    case 'ptab':ui.phone=d.v;break;
+    case 'prole':ui.phoneRole=d.v;break;
+    case 'ctab':ui.con=d.v;break;
+    case 'seen':S.seenV=S.version;S.seenVersion=true;break;
+    case 'start':ui.run={clId:d.cl,dueId:d.due||null,stage:d.stage||null,ans:{}};document.getElementById('app').scrollTop=0;break;
+    case 'cancelrun':ui.run=null;break;
+    case 'ans':(ui.run.ans[d.i]=ui.run.ans[d.i]||{}).val=d.v;break;
+    case 'sample':{const k=uid();PH[k]=SAMPLE;(ui.run.ans[d.i]=ui.run.ans[d.i]||{}).photo=k;break}
+    case 'sign':{const er=validateRun();if(er){toast(er);return}ui.modal={type:'sign'};break}
+    case 'counter':ui.modal={type:'sign',captainOnly:true,runId:d.id};break;
+    case 'counterphone':{const r=S.runs.find(x=>x.id===d.id);r.counterBy=captainName();emit('countersign',{runId:r.id,by:r.counterBy,at:Date.now()});act(`${r.counterBy} countersigned ${r.clName}`);toast('Countersigned.');break}
+    case 'close':ui.modal=null;break;
+    case 'rundetail':ui.modal={type:'run',id:d.id};break;
+    case 'report':ui.modal={type:'report',days:Number(d.days)};break;
+    case 'issue':ui.modal={type:'issue',id:d.id,ctx:d.ctx};break;
+    case 'issave':case 'isclose':{const i=S.issues.find(x=>x.id===d.id);i.assignee=val('is-as');i.due=val('is-due');i.fix=val('is-fix');
+      if(a==='isclose'&&!i.fix){toast('Add a fix note before closing.');break}
+      emit('issue_event',{issueId:i.id,kind:a==='isclose'?'close':'update',assignee:i.assignee,due:i.due,fix:i.fix,at:Date.now()});
+      if(a==='isclose'){i.status='closed';i.closedAt=Date.now();act(`Issue closed: ${i.title}`);ui.modal=null;toast('Issue closed.')}else toast('Saved.');break}
+    case 'iscomment':{const t=val('is-cm');if(!t)return;const cm={by:d.who,text:t,at:Date.now()};S.issues.find(x=>x.id===d.id).comments.push(cm);emit('issue_event',{issueId:d.id,kind:'comment',...cm});break}
+    case 'tripstart':S.trip={id:uid(),name:val('tripname')||'Unnamed trip',stage:'pre',startedAt:Date.now()};act(`Trip started: ${S.trip.name}`);break;
+    case 'triparrive':S.trip.stage='arr';break;
+    case 'tripskip':advanceTrip();break;
+    case 'logadd':{if(!val('lg-port')&&!val('lg-stbd')&&!val('lg-gen')&&!val('lg-fuel')&&!val('lg-note')){toast('Enter at least one value.');return}
+      const l={id:uid(),at:Date.now(),by:val('lg-by'),port:val('lg-port'),stbd:val('lg-stbd'),gen:val('lg-gen'),fuel:val('lg-fuel'),note:val('lg-note'),synced:false};
+      S.logs.unshift(l);emit('log',{at:l.at,by:l.by,port:l.port,stbd:l.stbd,gen:l.gen,fuel:l.fuel,note:l.note},l.id);act(`${l.by} added a running log entry`);toast('Log entry added.');break}
+    case 'request':{const t=val('rq');if(!t)return;const q={id:uid(),by:captainName(),at:Date.now(),text:t,status:'open'};S.requests.unshift(q);emit('request',{by:q.by,at:q.at,text:t},q.id);toast('Sent to The Yacht Standard team.');break}
+    case 'selcl':ui.sel=d.id;break;
+    default:return;
+  }
+  render();if(OUT.some(r=>r.vid===VID))flush(true);
+});
+document.addEventListener('input',e=>{
+  const t=e.target,d=t.dataset;if(!d.in)return;
+  if(d.in==='read'||d.in==='val')(ui.run.ans[d.i]=ui.run.ans[d.i]||{}).val=t.value;
+  if(d.in==='note')(ui.run.ans[d.i]=ui.run.ans[d.i]||{}).note=t.value;
+});
+document.addEventListener('change',e=>{
+  const t=e.target,d=t.dataset;if(!d.in)return;
+  if(d.in==='read')return render();
+  if(d.in==='pickvessel'){pickVessel(t.value);return}
+  if(d.in==='file'){const f=t.files&&t.files[0];if(!f)return;shrink(f).then(u=>{if(!ui.run)return;const k=uid();PH[k]=u;(ui.run.ans[d.i]=ui.run.ans[d.i]||{}).photo=k;render()}).catch(()=>toast('That photo could not be read. Try another.'));return}
+  if(d.in==='cl'||d.in==='clcs'||d.in==='vessel'){
+    if(!online()){toast('The console needs a connection.');return render()}
+    if(d.in==='cl')S.draft.find(x=>x.id===ui.sel)[d.f]=t.value;
+    if(d.in==='clcs')S.draft.find(x=>x.id===ui.sel).countersign=t.checked;
+    if(d.in==='vessel'){S.vessel[d.f]=t.value;render();api('PUT',`/vessels/${VID}`,S.vessel).then(()=>api('GET','/vessels')).then(v=>{VESSELS=v;renderBar()}).catch(e=>{if(e.message!=='code')toast(e.message)});return}
+    render();saveDraft();
+  }
+});
+window.addEventListener('online',()=>flush(false));
+window.addEventListener('offline',()=>render());
+// Pick up changes from other devices, but never while someone is mid-entry.
+setInterval(()=>{const el=document.activeElement,typing=el&&/^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName);if(!ui.run&&!ui.modal&&!typing&&!ui.saving&&canTry())flush(true)},20000);
+boot();
+</script>
+</body>
+</html>
