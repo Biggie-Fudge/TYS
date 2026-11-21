@@ -4,9 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>The Yacht Standard</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@400;500;600;700&display=swap" rel="stylesheet">
+<meta name="theme-color" content="#151515">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="TYS">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<link rel="icon" href="/icons/icon-192.png">
 <style>
+@font-face{font-family:'Archivo Narrow';src:url('/fonts/archivo-narrow-latin-wght-normal.woff2') format('woff2');font-weight:400 700;font-style:normal;font-display:swap}
 :root{
   /* Layout idea: a navy demo bar on top, then one device frame (iPad, phone or console) on a cool paper ground. */
   /* Theme follows designsbysarafl.com: Archivo Narrow, near-black ink on white, square corners, deep ocean teal from its hero. */
@@ -132,7 +138,27 @@ const clone=o=>JSON.parse(JSON.stringify(o));
 const I=(text,type='check',unit='',min=null,max=null)=>({id:uid(),text,type,unit,min,max});
 const SAMPLE='data:image/svg+xml;utf8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="320" height="200"><rect width="320" height="200" fill="#7d8a97"/><circle cx="160" cy="92" r="44" fill="none" stroke="#fff" stroke-width="6"/><text x="160" y="182" font-family="sans-serif" font-size="14" fill="#fff" text-anchor="middle">Sample photo</text></svg>');
 let S, PH={}, ui={surface:'ipad',ipad:'today',phoneRole:'owner',phone:'status',con:'checklists',run:null,modal:null,sel:null,simOff:false,netDown:false,needCode:false,saving:0};
-let VID=LS.get('tys-vessel')||'', VESSELS=[], OUT=LS.get('tys-outbox')||[], code=LS.get('tys-code')||'', busy=false, again=false;
+let VID='', VESSELS=[], OUT=[], code='', busy=false, again=false, seq=0, idbOk=true;
+/* On-device storage: IndexedDB holds the state cache and the outbox, one outbox record per key so a photo is written once. Falls back to localStorage if IndexedDB is unavailable. */
+const idb=new Promise((ok,no)=>{try{const r=indexedDB.open('tys',1);r.onupgradeneeded=()=>{r.result.createObjectStore('kv');r.result.createObjectStore('outbox',{keyPath:'id'})};r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)}catch(e){no(e)}});
+const tx=(store,mode,fn)=>idb.then(db=>new Promise((ok,no)=>{const t=db.transaction(store,mode),q=fn(t.objectStore(store));t.oncomplete=()=>ok(q?q.result:undefined);t.onerror=t.onabort=()=>no(t.error)}));
+const storeFail=()=>{if(!storeFail.done){storeFail.done=true;toast('This device could not save to its storage. Keep this page open until signal returns.')}};
+const kv={get:k=>tx('kv','readonly',s=>s.get(k)).then(v=>v===undefined?LS.get('tys-'+k):v).catch(()=>LS.get('tys-'+k)),
+          set:(k,v)=>tx('kv','readwrite',s=>s.put(v,k)).catch(()=>{if(!LS.set('tys-'+k,v))storeFail()})};
+const outPut=r=>tx('outbox','readwrite',s=>s.put(r)).catch(()=>{if(!LS.set('tys-outbox',OUT))storeFail()});
+const outDel=ids=>ids.length?tx('outbox','readwrite',s=>{ids.forEach(i=>s.delete(i))}).catch(()=>{LS.set('tys-outbox',OUT)}):Promise.resolve();
+async function restore(){
+  idbOk=await idb.then(()=>true,()=>false);
+  VID=await kv.get('vessel')||'';code=await kv.get('code')||'';VESSELS=await kv.get('vessels')||[];
+  const old=LS.get('tys-outbox')||[];
+  if(idbOk){
+    OUT=await tx('outbox','readonly',s=>s.getAll()).catch(()=>[]);
+    for(const r of old)if(!OUT.some(x=>x.id===r.id)){OUT.push(r);await outPut(r)}
+    if(old.length)try{localStorage.removeItem('tys-outbox')}catch(e){}
+  }else OUT=old;
+  OUT.sort((a,b)=>(a.n||0)-(b.n||0));seq=OUT.reduce((m,r)=>Math.max(m,r.n||0),0);
+  if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{});
+}
 
 const LIB=[
  {name:'Main engines',items:[['Oil level within marks, both engines'],['Oil pressure at idle','reading','psi',40,70],['Coolant level, both engines'],['Belts and hoses, no cracks or chafe']]},
@@ -147,10 +173,13 @@ const LIB=[
 const emptyS=()=>({vessel:{id:'',name:'',type:'',year:'',port:'',owner:''},version:0,published:null,checklists:[],draft:[],users:[],equipment:[],due:[],runs:[],issues:[],logs:[],trips:[],requests:[],activity:[],trip:null,seenV:0,seenVersion:true,lastSync:null});
 const canTry=()=>!ui.simOff&&navigator.onLine!==false;
 const online=()=>canTry()&&!ui.netDown;
-function save(){
-  if(VID)LS.set('tys-cache-'+VID,S);
-  if(!LS.set('tys-outbox',OUT)&&OUT.length&&!save.warned){save.warned=true;toast('This device is low on storage. Keep this page open until signal returns.')}
+function persist(){
+  if(!VID||!S)return;
+  kv.set('cache-'+VID,S);
+  const ph={};if(ui.run)Object.values(ui.run.ans).forEach(a=>{if(a.photo&&PH[a.photo])ph[a.photo]=PH[a.photo]});
+  kv.set('run-'+VID,ui.run?{run:ui.run,ph}:null); // a half-finished checklist survives a reload
 }
+function save(){clearTimeout(save.t);save.t=setTimeout(persist,250)}
 function applyState(st){
   const same=S&&S.vessel&&S.vessel.id===st.vessel.id;
   if(same&&ui.saving>0)st.draft=S.draft;
@@ -164,7 +193,7 @@ async function api(method,path,body){
   if(!r.ok)throw new Error(j.error||'The server refused that request.');
   return j;
 }
-const emit=(type,data,id)=>{const r={id:id||uid(),vid:VID,type,data};OUT.push(r);return r.id};
+const emit=(type,data,id)=>{const r={id:id||uid(),vid:VID,type,data,n:seq=Math.max(seq+1,Date.now())};OUT.push(r);outPut(r);return r.id};
 // Send what this device has queued, then take the server's current state. Safe to repeat.
 async function flush(quiet){
   if(!VID||!canTry())return;
@@ -175,8 +204,8 @@ async function flush(quiet){
     const res=await api('POST',`/vessels/${vid}/sync`,{records:mine.map(({id,type,data})=>({id,type,data}))});
     const done=new Set([...res.accepted,...res.duplicate]),bad=new Map(res.rejected.map(x=>[x.id,x.reason]));
     const n=mine.filter(r=>done.has(r.id)&&r.type!=='activity'&&r.type!=='photo').length;
-    if(bad.size)LS.set('tys-rejected',(LS.get('tys-rejected')||[]).concat(OUT.filter(r=>bad.has(r.id)).map(r=>({...r,why:bad.get(r.id)}))).slice(-50));
-    OUT=OUT.filter(r=>!(r.vid===vid&&(done.has(r.id)||bad.has(r.id))));
+    if(bad.size)kv.set('rejected',((await kv.get('rejected'))||[]).concat(OUT.filter(r=>bad.has(r.id)).map(r=>({...r,why:bad.get(r.id)}))).slice(-50));
+    const gone=OUT.filter(r=>r.vid===vid&&(done.has(r.id)||bad.has(r.id))).map(r=>r.id);OUT=OUT.filter(r=>!gone.includes(r.id));await outDel(gone);
     ui.netDown=false;
     if(vid===VID)applyState(res.state);
     if(bad.size)toast(`${bad.size} record${bad.size>1?'s':''} could not be saved on shore. A copy is kept on this device.`);
@@ -186,15 +215,19 @@ async function flush(quiet){
   finally{busy=false;render();if(again){again=false;flush(true)}}
 }
 async function pickVessel(id){
-  VID=id;LS.set('tys-vessel',id);S=LS.get('tys-cache-'+id)||emptyS();ui.run=null;ui.modal=null;ui.sel=null;render();
-  try{VESSELS=await api('GET','/vessels')}catch(e){}
+  VID=id;kv.set('vessel',id);S=(await kv.get('cache-'+id))||emptyS();ui.run=null;ui.modal=null;ui.sel=null;render();
+  try{VESSELS=await api('GET','/vessels');kv.set('vessels',VESSELS)}catch(e){}
   await flush(true);
 }
 async function boot(){
-  S=(VID&&LS.get('tys-cache-'+VID))||emptyS();render();
+  await restore();
+  S=(VID&&await kv.get('cache-'+VID))||emptyS();
+  const dr=VID&&await kv.get('run-'+VID);
+  if(dr&&dr.run&&getCl(dr.run.clId)){ui.run=dr.run;Object.assign(PH,dr.ph||{})}
+  render();
   try{
-    VESSELS=await api('GET','/vessels');ui.netDown=false;
-    if(!VESSELS.some(v=>v.id===VID)){VID=VESSELS[0]?VESSELS[0].id:'';LS.set('tys-vessel',VID);S=emptyS()}
+    VESSELS=await api('GET','/vessels');kv.set('vessels',VESSELS);ui.netDown=false;
+    if(!VESSELS.some(v=>v.id===VID)){VID=VESSELS[0]?VESSELS[0].id:'';kv.set('vessel',VID);S=emptyS();ui.run=null}
     if(VID)await flush(true);else{ui.surface='console';ui.con='vessel';render()}
   }catch(e){if(e.message!=='code'){ui.netDown=true;render()}}
 }
@@ -476,7 +509,7 @@ document.addEventListener('click',e=>{
   if(CON.includes(a)){conAct(a,d);return}
   if(a==='pin'){doPin();return}
   switch(a){
-    case 'code':code=val('ac');LS.set('tys-code',code);ui.needCode=false;boot();return;
+    case 'code':code=val('ac');ui.needCode=false;kv.set('code',code).then(boot);return;
     case 'surface':ui.surface=d.v;break;
     case 'signal':ui.simOff=!ui.simOff;if(ui.simOff)toast('Test mode: this device is offline. It keeps working.');else{render();flush(false);return}break;
     case 'itab':ui.ipad=d.v;ui.run=null;break;
@@ -516,6 +549,7 @@ document.addEventListener('input',e=>{
   const t=e.target,d=t.dataset;if(!d.in)return;
   if(d.in==='read'||d.in==='val')(ui.run.ans[d.i]=ui.run.ans[d.i]||{}).val=t.value;
   if(d.in==='note')(ui.run.ans[d.i]=ui.run.ans[d.i]||{}).note=t.value;
+  save();
 });
 document.addEventListener('change',e=>{
   const t=e.target,d=t.dataset;if(!d.in)return;
@@ -526,7 +560,7 @@ document.addEventListener('change',e=>{
     if(!online()){toast('The console needs a connection.');return render()}
     if(d.in==='cl')S.draft.find(x=>x.id===ui.sel)[d.f]=t.value;
     if(d.in==='clcs')S.draft.find(x=>x.id===ui.sel).countersign=t.checked;
-    if(d.in==='vessel'){S.vessel[d.f]=t.value;render();api('PUT',`/vessels/${VID}`,S.vessel).then(()=>api('GET','/vessels')).then(v=>{VESSELS=v;renderBar()}).catch(e=>{if(e.message!=='code')toast(e.message)});return}
+    if(d.in==='vessel'){S.vessel[d.f]=t.value;render();api('PUT',`/vessels/${VID}`,S.vessel).then(()=>api('GET','/vessels')).then(v=>{VESSELS=v;kv.set('vessels',v);renderBar()}).catch(e=>{if(e.message!=='code')toast(e.message)});return}
     render();saveDraft();
   }
 });
@@ -534,6 +568,8 @@ window.addEventListener('online',()=>flush(false));
 window.addEventListener('offline',()=>render());
 // Pick up changes from other devices, but never while someone is mid-entry.
 setInterval(()=>{const el=document.activeElement,typing=el&&/^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName);if(!ui.run&&!ui.modal&&!typing&&!ui.saving&&canTry())flush(true)},20000);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){clearTimeout(save.t);persist()}});
+if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));
 boot();
 </script>
 </body>

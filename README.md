@@ -38,12 +38,23 @@ src/state.ts    everything a client needs for one vessel
 src/app.ts      routes
 src/seed.ts     the sample vessel
 web/index.html  the web app (iPad, phone, console)
+web/sw.js       offline shell (service worker)
 ```
+
+## Offline
+
+- **Storage.** The state cache and the outbox live in IndexedDB on the device. Each queued record, photos included, is written once under its own key. A half-finished checklist is saved too, so a reload or a closed tab does not lose it.
+- **App shell.** `web/sw.js` caches the page, font and icons, so the app opens with no signal. When the network answers within three seconds the newest page is used and the cache is refreshed.
+- **Install on the iPad.** Open the site in Safari, tap Share, then Add to Home Screen. Open it once while connected so the shell and the vessel's data are stored.
+- **Photos** that have been viewed stay available offline.
+- `test/offline.manual.cjs` walks the offline path against a local server: work offline, reload twice, reconnect, confirm one copy on the server.
+
+Bump `V` in `web/sw.js` when the list of shell files changes.
 
 ## Not done yet
 
 - **Sign-in.** One shared access code protects the API. There are no per-person logins and the server does not enforce owner, captain and crew roles yet.
-- **Offline storage.** The outbox lives in browser local storage, which is small. Moving it to IndexedDB, with an installable offline shell, is the next step for real time at sea.
 - **Photos** are stored in Postgres and served by unguessable link. They move to object storage (R2 or S3) later.
 - **Email and PDF.** No overdue alerts, weekly owner email or PDF export yet. Reports show on screen.
 - **Active trips** live on the iPad that started them until the trip closes.
+- **Not yet tried on a real iPad.** The offline logic is tested headlessly. How long iPad Safari keeps the stored data over weeks without use still needs a real device test.
