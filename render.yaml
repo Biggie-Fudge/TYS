@@ -14,7 +14,8 @@ services:
           property: connectionString
       - key: TYS_ACCESS_CODE
         generateValue: true
+      # Off by default: the sample vessel's PINs are published in this repo. Set to "1" only for a demo instance.
       - key: SEED_SAMPLE
-        value: "1"
+        value: "0"
 databases:
   - name: tys-db
