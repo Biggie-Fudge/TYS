@@ -21,7 +21,7 @@ Open http://localhost:3000. With no `DATABASE_URL` set, the server uses a local 
 | --- | --- |
 | `DATABASE_URL` | Postgres connection string. Set by the blueprint. |
 | `TYS_ACCESS_CODE` | Shared access code every device must enter. The blueprint generates one. Read it in the Render dashboard. |
-| `SEED_SAMPLE` | `1` loads the sample vessel into an empty database. Remove it before onboarding real vessels. |
+| `SEED_SAMPLE` | `1` loads the sample vessel into an empty database. Off in the Render blueprint, because the sample PINs are public. Turn it on only for a demo instance. |
 | `PGSSL` | Set to `require` only if you connect to Postgres over an external URL. |
 
 ## How it works
